@@ -1,0 +1,49 @@
+---
+# Default variables
+# =================
+
+libvirt__install_host: 'localhost' 
+
+# --------------------------
+#   libvirt connection URI
+# --------------------------
+libvirt__default_uri: 'qemu:///system'
+libvirt__connections: 
+  'localhost': '{{ libvirt__default_uri }}'
+libvirt__uri: 'localhost'
+
+# ---------------------------------
+#   libvirt network configuration
+# ---------------------------------
+libvirt__networks:
+  - '{{ libvirt__networks_default }}'
+  - '{{ libvirt__networks_virt_nat }}'
+
+libvirt__networks_default:
+  - name: 'default'
+    type: 'dnsmasq'
+    bridge: 'virbr0'
+    addresses: [ '192.168.122.1/24' ]
+    dhcp_range: [ '2', '-2' ]
+    state: 'absent'
+
+libvirt__networks_virt_nat:
+  - name: 'virt-nat'
+    type: 'dnsmasq'
+    bridge: 'virbr0'
+    addresses: [ '192.168.122.1/24' ]
+    domain: 'nat.example.com'
+    state: 'active'
+    forward: True
+    dhcp: True
+
+# --------------------------------------
+#   libvirt storage pool configuration
+# --------------------------------------
+libvirt__pools:
+  - '{{ libvirt__pools_default }}'
+
+libvirt__pools_default:
+  - name: 'default'
+    type: 'dir'
+    path: '/var/lib/libvirt/images'

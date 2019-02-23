@@ -1,0 +1,21 @@
+---
+# Default variables
+# =================
+
+libvirt__install_host: 'localhost' 
+
+# ---------------------------------
+#   libvirt network configuration
+# ---------------------------------
+libvirt__networks:
+  - '{{ libvirt__networks_okd_nat }}'
+
+libvirt__networks_okd_nat:
+  - name: 'okd-nat'
+    type: 'dnsmasq'
+    bridge: 'virbr1'
+    addresses: [ '192.168.200.1/24' ]
+    domain: 'example.com'
+    state: 'active'
+    forward: True
+    dhcp: True
