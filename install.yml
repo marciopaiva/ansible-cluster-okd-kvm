@@ -1,0 +1,7 @@
+---
+- name: Instalação e Configuração do KVM
+  hosts: localhost
+  become: True
+  tags: kvm
+  roles: 
+    - kvm

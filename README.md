@@ -3,3 +3,6 @@ Este ansible playbook pode ser utilizado para a instalação de um cluster OKD u
 
 ## Sistemas Suportados
 - Fedora 29
+
+## Fluxo de Operação do Playbook
+- Instalação e Configuração do KVM
