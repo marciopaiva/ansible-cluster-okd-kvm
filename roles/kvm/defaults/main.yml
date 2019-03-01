@@ -1,49 +1,43 @@
 ---
-# Default variables
-# =================
+# Exigir que a tecnologia de virtualização (VT) estaja habilitada para executar este papel. 
+# Embora isso forneça melhor desempenho da VM, talvez ela não esteja disponível em determinados ambientes.
+kvm_host_require_vt: true
 
-libvirt__install_host: 'localhost' 
+# Exige a instalação e suporte para o cockpit
+kvm_host_require_cockpit: false
 
-# --------------------------
-#   libvirt connection URI
-# --------------------------
-libvirt__default_uri: 'qemu:///system'
-libvirt__connections: 
-  'localhost': '{{ libvirt__default_uri }}'
-libvirt__uri: 'localhost'
+# Lista de arquiteturas para instalar emuladores do sistema QEMU, por ex. x86.
+kvm_host_qemu_emulators: "{{ [] if kvm_host_require_vt | bool else ['x86'] }}"
 
-# ---------------------------------
-#   libvirt network configuration
-# ---------------------------------
-libvirt__networks:
-  - '{{ libvirt__networks_default }}'
-  - '{{ libvirt__networks_virt_nat }}'
+# Exigir que o suporte a UEFI seja habilitado.
+# Em alguns casos, isso requer a instalação de pacotes extras.
+kvm_host_enable_efi_support: false
 
-libvirt__networks_default:
-  - name: 'default'
-    type: 'dnsmasq'
-    bridge: 'virbr0'
-    addresses: [ '192.168.122.1/24' ]
-    dhcp_range: [ '2', '-2' ]
-    state: 'absent'
+# Altera o caminho dentro de /var/run em que o libvirt usa para armazenar o soquetes de domínio unix, 
+# bem como o nome padrão do arquivo PID. Sobrescreva isso se você tiver um conflito com o soquete padrão,
+# por exemplo, ele pode estar em uso pelo contêiner nova_libvirt
+kvm_host_var_prefix: ""
 
-libvirt__networks_virt_nat:
-  - name: 'virt-nat'
-    type: 'dnsmasq'
-    bridge: 'virbr0'
-    addresses: [ '192.168.122.1/24' ]
-    domain: 'nat.example.com'
-    state: 'active'
-    forward: True
-    dhcp: True
+# Local onde os soquetes do domínio Unix serão armazenados
+kvm_host_socket_dir: >-
+  {%- if kvm_host_var_prefix -%}
+  /var/run/{{ kvm_host_var_prefix }}
+  {%- endif -%}
 
-# --------------------------------------
-#   libvirt storage pool configuration
-# --------------------------------------
-libvirt__pools:
-  - '{{ libvirt__pools_default }}'
+# Caminho para o arquivo PID que impede que várias instâncias do daemon sejam geradas
+kvm_host_pid_path: >-
+  {%- if kvm_host_var_prefix -%}
+  /var/run/{{ kvm_host_var_prefix }}.pid
+  {%- endif -%}
 
-libvirt__pools_default:
-  - name: 'default'
-    type: 'dir'
-    path: '/var/lib/libvirt/images'
+# Argumentos de linha de comando passados para o libvirtd pelo sistema init
+kvm_host_libvirtd_args: >-
+  {%- if kvm_host_pid_path -%}
+  -p {{ kvm_host_pid_path }}
+  {%- endif %}
+
+# URI de conexão com o libvirt
+kvm_host_uri: >-
+  {%- if kvm_host_socket_dir -%}
+  qemu+unix:///system?socket={{ kvm_host_socket_dir }}/libvirt-sock
+  {%- endif %}

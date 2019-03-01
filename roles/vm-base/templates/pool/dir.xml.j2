@@ -1,0 +1,9 @@
+<pool type='dir'>
+  <name>{{ pool.name }}</name>
+{% if pool.uuid|d() %}
+  <uuid>{{ pool.uuid }}</uuid>
+{% endif %}
+  <target>
+    <path>{{ pool.path }}/{{ pool.name }}</path>
+  </target>
+</pool>

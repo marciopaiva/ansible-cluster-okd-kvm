@@ -1,0 +1,30 @@
+<pool type='logical'>
+  <name>{{ pool.name }}</name>
+{% if pool.uuid|d() %}
+  <uuid>{{ pool.uuid }}</uuid>
+{% endif %}
+{% if pool.device|d() or pool.devices|d() %}
+  <source>
+{% if pool.device|d() %}
+{% if pool.device is string %}
+    <device path="{{ pool.device }}"/>
+{% else %}
+{% for device in pool.device %}
+    <device path="{{ device }}"/>
+{% endfor %}
+{% endif %}
+{% elif pool.devices|d() %}
+{% if pool.devices is string %}
+    <device path="{{ pool.devices }}"/>
+{% else %}
+{% for device in pool.devices %}
+    <device path="{{ device }}"/>
+{% endfor %}
+{% endif %}
+{% endif %}
+  </source>
+{% endif %}
+  <target>
+    <path>/dev/{{ pool.name }}</path>
+  </target>
+</pool>

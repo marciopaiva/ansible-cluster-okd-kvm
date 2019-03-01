@@ -1,29 +1,5 @@
 ---
-
-- name: Verifique se o módulo libvirt está habilitado na BIOS
-  shell: "lsmod | grep kvm | wc -l"
-  delegate_to: "{{ libvirt__install_host }}"
-  register: libvirt__mod_active
-
-- name: Se o módulo não estiver habilitado, envia um erro
-  fail:
-    msg: "A virtualização deve ser habilitada. Verifique a configuração da BIOS"
-  when: libvirt__mod_active.stdout == '0'
-
-- name: Incluindo arquivos de instalação do {{ ansible_distribution | lower }}
-  include: "{{ task__file }}"
-  with_first_found:
-    - files:
-      - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}.yml"
-      - "{{ ansible_distribution | lower }}.yml"
-  loop_control:
-    loop_var: task__file
-  when: libvirt__mod_active.stdout != '0'
-
-- name: Incluindo arquivos de configuração networks
-  include: networks.yml
-  when: libvirt__mod_active.stdout != '0'
-
-- name: Incluindo arquivos de configuração pools
-  include: pools.yml
-  when: libvirt__mod_active.stdout != '0'
+- include: prelude.yml
+- include: validate.yml
+- include: install.yml
+- include: config.yml

@@ -1,0 +1,14 @@
+---
+
+- name: Assegurar que a VM esta definida
+  virt:
+    name: "{{ vm_base.name }}"
+    command: define
+    xml: "{{ lookup('template', 'cloud-init/vm-template.xml.j2') }}"
+
+- name: Iniciando a VM no KVM
+  virt:
+    name: "{{ vm_base.name }}"
+    autostart: "{{ vm_base.autostart | d('True') }}"
+    state: "{{ 'running' if (start | d('True')) else 'shutdown' }}"
+ 
