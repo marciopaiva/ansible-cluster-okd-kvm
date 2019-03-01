@@ -1,0 +1,8 @@
+<network>
+  <name>{{ network.name }}</name>
+{% if item.uuid|d() %}
+  <uuid>{{ network.uuid }}</uuid>
+{% endif %}
+  <bridge name="{{ network.bridge }}" />
+  <forward mode="bridge" />
+</network>

@@ -1,0 +1,30 @@
+---
+
+- name: Certificar que a rede está definida
+  virt_net:
+    name: "{{ vm_base_network.name }}"
+    command: define
+    xml: '{{ lookup("template", "network/" + vm_base_network.type + ".xml.j2") }}'
+  when: ((vm_base_network.name|d()) and 
+        (vm_base_network.state|d("active") not in [ 'undefined', 'absent' ]) and 
+        (vm_base_network.interface_present is undefined or 
+        (vm_base_network.interface_present in ansible_interfaces and not vm_base_network.uri|d())))
+
+- name: Certificar que a rede está ativa
+  virt_net:
+    name: "{{ vm_base_network.name }}"
+    state: active
+  when: ((vm_base_network.name|d()) and 
+        (vm_base_network.state|d("active") not in [ 'undefined', 'absent' ]) and 
+        (vm_base_network.interface_present is undefined or 
+        (vm_base_network.interface_present in ansible_interfaces and not vm_base_network.uri|d())))
+
+- name: Certificar que a rede será iniciada no boot
+  virt_net:
+    name: "{{ vm_base_network.name }}"
+    autostart: yes
+  when: ((vm_base_network.name|d()) and 
+        (vm_base_network.state|d("active") not in [ 'undefined', 'absent' ]) and 
+        (vm_base_network.interface_present is undefined or 
+        (vm_base_network.interface_present in ansible_interfaces and not vm_base_network.uri|d())))
+

@@ -5,3 +5,10 @@
   tags: kvm
   roles: 
     - kvm
+
+- name: Provisionar VM Base para o Cluster
+  hosts: localhost
+  become: True
+  tags: vm-base
+  roles: 
+    - vm-base

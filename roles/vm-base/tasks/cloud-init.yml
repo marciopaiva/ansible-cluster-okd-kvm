@@ -1,0 +1,106 @@
+---
+
+- name: Verificar se existe uma chave ssh no home do usuário
+  stat:
+    path: /home/{{ ansible_user }}/.ssh/id_rsa
+  become: false
+  register: ssh_key_exist
+
+- name: Gerar uma chave ssh no home do usuário  
+  shell: >
+     yes y | ssh-keygen -t rsa -q -N "" -f /home/{{ ansible_user }}/.ssh/id_rsa }}
+  become: false
+  when: (not ssh_key_exist.stat.exists) 
+
+- name: Gerar o arquivo user-data para imagem de boot
+  template: 
+    src: "cloud-init/user-data.j2"
+    dest: "{{ pool.path }}/{{ pool.name }}/user-data"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0655    
+
+- name: Gerar o arquivo meta-data para imagem de boot
+  copy: 
+    dest: "{{ pool.path }}/{{ pool.name }}/meta-data"
+    content: |
+      instance-id: '{{ vm_base_machine.name }}'
+      hostname: '{{ vm_base_machine.hostname }}.{{ network.domain }}'
+      local-hostname: '{{ vm_base_machine.hostname }}'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0655
+
+- name: Gerar a imagem boot.iso do cloud-init
+  command: >
+    genisoimage -output 
+    '{{ pool.path }}/{{ pool.name }}/boot.iso' -volid cidata -joliet -rock 
+    '{{ pool.path }}/{{ pool.name }}/user-data' 
+    '{{ pool.path }}/{{ pool.name }}/meta-data' 
+
+- name: Gerar o disco principal da VM Base
+  command: > 
+    qemu-img create -b {{ vm_base_image_path }}/{{ vm_base_image_name }} 
+    -f {{ item.format }} {{ pool.path }}/{{ pool.name }}/{{ item.name }}.{{ item.format }} {{ item.capacity }}
+  with_items: "{{ volumes }}"
+  when: (item.device == 'disk')
+
+
+# - name: Definindo a VM no KVM
+#   virt:
+#     name: "{{ item.project}}-{{ item.name }}"
+#     command: define
+#     xml: "{{ lookup('template', 'vm-template.xml.j2') }}"
+#   when: >
+#     item['host'] is defined and
+#     inventory_hostname == item['host']
+
+# - name: Iniciando a VM no KVM
+#   virt:
+#     name: "{{ item.project}}-{{ item.name }}"
+#     state: "{{ item.vm_state }}"
+#   when: >
+#     item['host'] is defined and
+#     inventory_hostname == item['host']
+
+# - name: Capturando o endereço MAC da VM
+#   shell: >
+#      virsh --connect qemu:///system dumpxml {{ item.project}}-{{ item.name }} | awk -F\' '/mac address/ {print $2}'
+#   delegate_to: "{{ libvirt__install_host }}"
+#   register: mac_info
+
+# - name: Aguardando conexão com a VM
+#   wait_for:
+#     path: "/var/lib/libvirt/dnsmasq/virbr1.status"
+#     search_regex: "{{ mac_info.stdout }}"
+#   delegate_to: "{{ libvirt__install_host }}"
+
+# - name: Capturando o endereço IP da VM
+#   shell: >
+#      grep -B1 {{ mac_info.stdout }} /var/lib/libvirt/dnsmasq/virbr1.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+#   register: vm_ip
+#   delegate_to: "{{ libvirt__install_host }}"
+
+# - name: Ejetando o cd-rom da VM
+#   shell: "virsh --connect qemu:///system change-media {{ item.project}}-{{ item.name }} sda --eject --config"
+#   delegate_to: "{{ libvirt__install_host }}"
+
+# - name: Incluindo o IP da VM no known_hosts
+#   shell: "ssh-keyscan -t rsa {{ vm_ip.stdout }}  >> ~/.ssh/known_hosts"
+#   delegate_to: "{{ libvirt__install_host }}"
+#   become: false
+#   ignore_errors: yes
+#   register: add_known_host
+#   until: "add_known_host is succeeded and not add_known_host.stderr.find('refused') != -1"
+#   retries: 180
+#   delay: 5
+
+# - name: Removendo o endereço MAC da eth0 na VM
+#   shell: "ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ vm_ip.stdout }} -- sudo sed '/HWADDR/d'  -i /etc/sysconfig/network-scripts/ifcfg-eth0"
+#   delegate_to: "{{ libvirt__install_host }}"
+#   ignore_errors: yes
+#   become: false
+#   register: remove_mac
+#   until: remove_mac is succeeded
+#   retries: 180
+#   delay: 5

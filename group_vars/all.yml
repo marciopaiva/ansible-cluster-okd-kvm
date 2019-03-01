@@ -1,21 +1,49 @@
 ---
-# Default variables
-# =================
+# Exigir que a tecnologia de virtualização (VT) seja habilitada para executar este papel. 
+# Embora isso forneça melhor desempenho da VM, talvez ela não esteja disponível em determinados ambientes.
+kvm_host_require_vt: true
 
-libvirt__install_host: 'localhost' 
+# Configuro como true pois utilizo o cockpit para gerir docker e outras ferramentas
+kvm_host_require_cockpit: true
 
-# ---------------------------------
-#   libvirt network configuration
-# ---------------------------------
-libvirt__networks:
-  - '{{ libvirt__networks_okd_nat }}'
+# --------------------------------------------------------------------------------------------------------
+# Configurações para a VM base para o projeto
+# --------------------------------------------------------------------------------------------------------
 
-libvirt__networks_okd_nat:
-  - name: 'okd-nat'
-    type: 'dnsmasq'
-    bridge: 'virbr1'
-    addresses: [ '192.168.200.1/24' ]
-    domain: 'example.com'
-    state: 'active'
-    forward: True
-    dhcp: True
+# configuração da rede que será utilizada no projeto okd
+vm_base_network:
+  name: 'okd'
+  type: 'dnsmasq'
+  domain: 'example.com'
+  bridge: 'virbr1'
+  addresses: [ '192.168.200.1/24' ]
+  forward: True
+  dhcp_range: [ '2', '-2' ]
+  dhcp: True
+
+# configurações da vm-base a ser criada
+vm_base_machine: 
+  name: 'vm-base'
+  hostname: 'base'
+  description: 'Template para clone das VMs do OKD'
+  state: present
+  memory_mb: 2048
+  vcpus: 2
+  autostart: true
+  pool:
+    name: 'vm-base'
+    type: 'dir'
+    path: '/workspace/kvm'
+    owner: 'mbarbosa'
+    group: 'mbarbosa'    
+  volumes:
+    - name: 'disk-root'
+      device: 'disk'
+      format: 'qcow2'
+      capacity: '20G'
+    - name: 'boot'
+      device: 'cdrom'
+      format: 'raw'
+  interfaces:
+    - network: 'okd'
+
