@@ -1,5 +1,6 @@
 <domain type='{{ vm_base_engine }}'>
   <name>{{ vm_base.name }}</name>
+  <title>{{ vm_base_machine.hostname }}.{{ network.domain }}</title>
   <memory>{{ vm_base.memory_mb | int * 1024 }}</memory>
   <vcpu>{{ vm_base.vcpus }}</vcpu>
   <clock sync="localtime"/>

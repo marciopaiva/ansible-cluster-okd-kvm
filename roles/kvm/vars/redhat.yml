@@ -5,6 +5,7 @@ kvm_host_libvirt_packages_default:
   - libvirt-daemon-kvm
   - libvirt-python
   - python3-lxml
+  - python-netaddr
   - python3-netaddr
   - python3-firewall
   - qemu-kvm
@@ -18,8 +19,6 @@ kvm_host_packages_cockpit:
   - cockpit-machines
   - cockpit-networkmanager
   - cockpit-dashboard
-  - cockpit-kubernetes
-  - cockpit-pcp
 
 # Pacotes necessários para o suporte UEFI
 # O pacote oficial não suporta CentOS 7.5
