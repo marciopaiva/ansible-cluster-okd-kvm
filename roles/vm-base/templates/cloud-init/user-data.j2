@@ -1,13 +1,72 @@
 #cloud-config
 
-package_upgrade: false
+package_upgrade: true
+
+yum_repos:
+  epel:
+    name: Extra Packages for Enterprise Linux 7 - $basearch
+    baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch
+    metalinkr: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+    failovermethod: priority
+    enabled: 1
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+  epel-debuginfo:
+    name: Extra Packages for Enterprise Linux 7 - $basearch - Debug
+    baseurl: http://download.fedoraproject.org/pub/epel/7/$basearch/debug
+    metalink: https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch
+    failovermethod: priority
+    enabled: 1
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+    gpgcheck: 0
+
 
 packages:
   - vim
+  - wget 
+  - git 
+  - net-tools 
+  - bind-utils 
+  - yum-utils 
+  - iptables-services 
+  - bridge-utils 
+  - bash-completion 
+  - kexec-tools 
+  - sos 
+  - psacct
+  - ansible
+  - pyOpenSSL
+
+groups:
+  - docker
 
 users:
+  - default
   - name: {{ ansible_user }}
+    groups: docker
+    shell: /bin/bash
     lock-passwd: false
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys:
       - {{ vm_base_ssh_key }}
+
+chpasswd:
+  list: |
+    root:root
+    {{ ansible_user }}:{{ ansible_user }}
+  expire: False
+
+runcmd:
+  - [ sed, -i, -e, 's/#PermitRootLogin yes/PermitRootLogin no/g', /etc/ssh/sshd_config ]
+  - [ sed, -i, -e, '$aAllowUsers {{ ansible_user }}', /etc/ssh/sshd_config ]
+  - [ yum, -y, remove, cloud-init ]
+  - systemctl restart sshd
+
+output:
+  all: ">> /var/log/cloud-init.log"
+
+power_state:
+  timeout: 120
+  delay: "+5"
+  message: Rebooting in five minutes. Please save your work.
+  mode: reboot

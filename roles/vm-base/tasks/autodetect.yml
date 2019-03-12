@@ -1,13 +1,13 @@
 ---
 
-- name: Detectar o mecanismo de virtualização
+- name: autodetect | Detectar o mecanismo de virtualização
   block:
-    - name: Carregar o módulo do kernel KVM
+    - name: autodetect | Carregar o módulo do kernel KVM
       modprobe:
         name: kvm
       failed_when: false
 
-    - name: Verificar se o módulo KVM está ativo
+    - name: autodetect | Verificar se o módulo KVM está ativo
       stat:
         path: /dev/kvm
       register: stat_kvm
@@ -16,7 +16,7 @@
     # arquitetura do host. Idealmente, testaríamos as instruções de virtualização, 
     # por exemplo. vt-d, uma vez que é possível que outra arquitetura possa ser 
     # suportada, mesmo que a arquitetura da cpu emulada não seja a mesma.
-    - name: Registrar o melhor mecanismo a ser utilizado
+    - name: autodetect | Registrar o melhor mecanismo a ser utilizado
       set_fact:
         vm_base_engine: >-
           {%- if ansible_architecture != vm_base_arch -%}
@@ -28,10 +28,10 @@
           {%- endif -%}
   when: vm_base_engine is none
 
-- name: Detectar o emulador de virtualização
+- name: autodetect | Detectar o emulador de virtualização
   block:
     - block:
-        - name: Detectar o caminho binário do emulador KVM
+        - name: autodetect | Detectar o caminho binário do emulador KVM
           stat:
             path: "{{ item }}"
           register: kvm_emulator_result
@@ -40,7 +40,7 @@
             - /usr/bin/qemu-kvm
             - /usr/libexec/qemu-kvm
 
-        - name: Registrar o caminho binário do emulador KVM
+        - name: autodetect | Registrar o caminho binário do emulador KVM
           set_fact:
             vm_base_emulator: "{{ item.item }}"
           with_items: "{{ kvm_emulator_result.results }}"
@@ -48,17 +48,17 @@
       when: vm_base_engine == 'kvm'
 
     - block:
-        - name: Detectar o caminho binário do emulador QEMU
+        - name: autodetect | Detectar o caminho binário do emulador QEMU
           shell: which qemu-system-{{ vm_base_arch }}
           register: qemu_emulator_result
           changed_when: false
 
-        - name: Registrando o caminho binário do emulador QEMU
+        - name: autodetect | Registrar o caminho binário do emulador QEMU
           set_fact:
             vm_base_emulator: "{{ qemu_emulator_result.stdout }}"
       when: vm_base_engine == 'qemu'
 
-    - name: Falhar se não for possível detectar o emulador
+    - name: autodetect | Falhar se não for possível detectar o emulador
       fail:
         msg: Não é possível detectar o emulador para o mecanismo {{ vm_base_engine }}.
       when: vm_base_emulator is none

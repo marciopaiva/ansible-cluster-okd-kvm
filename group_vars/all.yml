@@ -10,6 +10,9 @@ kvm_host_require_cockpit: true
 # Configurações para a VM base para o projeto
 # --------------------------------------------------------------------------------------------------------
 
+# recriar a vm base caso exista.
+vm_base_recreate: True
+
 # configuração da rede que será utilizada no projeto okd
 vm_base_network:
   name: 'okd'

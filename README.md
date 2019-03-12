@@ -7,9 +7,9 @@ Este ansible playbook pode ser utilizado para a instalação de um cluster OKD u
 ## Fluxo de Operação do Playbook
 - Instalação e Configuração do KVM
 - Provisionar VM Base para o Cluster
+- Configuração da VM Base
 
 ## TODO
-- Atualizar a VM Base
 - Criar VMs para o Cluster a partir da VM Base
 - Disponibilizar disco para as novas VMs
 - Configurar o DNSMasq adicionando as novas VMs

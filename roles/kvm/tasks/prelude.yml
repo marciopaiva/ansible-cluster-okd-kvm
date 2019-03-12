@@ -1,5 +1,5 @@
 ---
-- name: Coletar as variáveis especificas para do sistema
+- name: prelude | Coletar as variáveis especificas para do sistema
   include_vars: "{{ item }}"
   with_first_found:
     - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"

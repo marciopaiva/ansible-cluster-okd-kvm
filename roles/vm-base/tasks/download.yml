@@ -1,10 +1,10 @@
 ---
-- name: Verificar se a imagem {{ vm_base_image_name }} existe
+- name: download | Verificar se a imagem {{ vm_base_image_name }} existe
   stat:
     path: "{{ vm_base_image_path }}/{{ vm_base_image_name }}"
   register: image
 
-- name: Realizar o download da imagem {{ vm_base_image_xz }}
+- name: download | Realizar o download da imagem {{ vm_base_image_xz }}
   get_url:
     url: "{{ vm_base_image_url }}"
     dest: "{{ vm_base_image_path }}/{{ vm_base_image_xz }}"
@@ -13,11 +13,11 @@
     mode: 0655
   when: (not image.stat.exists)
 
-- name: Descompactar o arquivo {{ vm_base_image_xz }}
+- name: download | Descompactar o arquivo {{ vm_base_image_xz }}
   command: xz -d {{ vm_base_image_path }}/{{ vm_base_image_xz }}
   when: (not image.stat.exists)
 
-- name: Ajustar as permissões do arquivo {{ vm_base_image_name }}
+- name: download | Ajustar as permissões do arquivo {{ vm_base_image_name }}
   file:
     path: "{{ vm_base_image_path }}/{{ vm_base_image_name }}"
     owner: root

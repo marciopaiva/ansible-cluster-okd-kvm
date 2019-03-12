@@ -1,6 +1,6 @@
 ---
 
-- name: Configurar o caminho do socket no libvirtd.conf
+- name: config | Configurar o caminho do socket no libvirtd.conf
   lineinfile:
     path: /etc/libvirt/libvirtd.conf
     insertafter: '^#unix_sock_dir ='
@@ -9,7 +9,7 @@
   when: kvm_host_socket_dir | length > 0
   notify: restart libvirt
 
-- name: Criar diretório para o libvirt socket
+- name: config | Criar diretório para o libvirt socket
   file:
     state: directory
     path: "{{ kvm_host_socket_dir }}"
@@ -18,14 +18,14 @@
     mode: 0755
   when: kvm_host_socket_dir | length > 0
 
-- name: Incluir o usuário ao grupo libvirt
+- name: config | Incluir o usuário ao grupo libvirt
   user:
     name: '{{ ansible_user }}'
     groups: libvirt
     append: yes
     state: present
 
-- name: Processar argumentos extras
+- name: config | Processar argumentos extras
   lineinfile: "{{ rule.args }}"
   become: true
   loop: "{{ kvm_host_lineinfile_extra_rules | default([]) }}"
@@ -35,7 +35,7 @@
   notify:
     - restart libvirt
 
-- name: Criar regra de firewalld para o cockpit
+- name: config | Criar regra de firewalld para o cockpit
   firewalld:
     service: cockpit
     zone: public
@@ -48,19 +48,19 @@
 - name: Flush handlers
   meta: flush_handlers
 
-- name: Verificar se o serviço libvirt daemon está ativo
+- name: config | Verificar se o serviço libvirt daemon está ativo
   service:
     name: libvirtd
     state: started
     enabled: yes
 
-- name: Verificar se o serviço tuned daemon está ativo
+- name: config | Verificar se o serviço tuned daemon está ativo
   service:
     name: tuned
     state: started
     enabled: yes
 
-- name: Verificar se o serviço cockpit daemon está ativo
+- name: config | Verificar se o serviço cockpit daemon está ativo
   service:
     name: cockpit
     state: started
