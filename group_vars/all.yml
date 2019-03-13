@@ -13,6 +13,8 @@ kvm_host_require_cockpit: true
 # recriar a vm base caso exista.
 vm_base_recreate: True
 
+vm_base_timezone: 'America/Sao_Paulo'
+
 # configuração da rede que será utilizada no projeto okd
 vm_base_network:
   name: 'okd'
@@ -50,3 +52,40 @@ vm_base_machine:
   interfaces:
     - network: 'okd'
 
+# --------------------------------------------------------------------------------------------------------
+# Configurações para as VMs do cluster OKD
+# --------------------------------------------------------------------------------------------------------
+
+# recriar todo o cluster okd
+okd_recreate: True
+
+# prefix no nome das vms
+okd_prefix: 'okd'
+
+# configurações para vms load balancer
+vm_lbs:
+  prefix: 'lb'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1
+
+# configurações para vms masters
+vm_masters:
+  prefix: 'master'
+  vcpus: '2'
+  memory: '2G'
+  vms: 2
+
+# configurações para vms infras
+vm_infras:
+  prefix: 'infra'
+  vcpus: '4'
+  memory: '4G'
+  vms: 2
+
+# configurações para vms apps
+vm_apps:
+  prefix: 'app'
+  vcpus: '4'
+  memory: '4G'
+  vms: 2

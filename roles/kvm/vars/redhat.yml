@@ -4,6 +4,7 @@ kvm_host_libvirt_packages_default:
   - libvirt
   - libvirt-daemon-kvm
   - libvirt-python
+  - libguestfs-tools
   - python3-lxml
   - python-netaddr
   - python3-netaddr

@@ -19,12 +19,12 @@
 
 - name: deploy | Aguardar pela conexão com a VM
   wait_for:
-    path: "/var/lib/libvirt/dnsmasq/virbr1.status"
+    path: "/var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status"
     search_regex: "{{ mac_info.stdout }}"
 
 - name: deploy | Capturar o endereço IP da VM
   shell: >
-     grep -B1 {{ mac_info.stdout }} /var/lib/libvirt/dnsmasq/virbr1.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+     grep -B1 {{ mac_info.stdout }} /var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
   register: vm_ip
 
 - name: deploy | Ejetar o cd-rom da VM
@@ -36,7 +36,7 @@
   ignore_errors: yes
   register: add_known_host
   until: "add_known_host is succeeded and not add_known_host.stderr.find('refused') != -1"
-  retries: 180
+  retries: 100
   delay: 5
 
 - name: deploy | Remover o endereço MAC da eth0 na VM
@@ -45,5 +45,14 @@
   become: false
   register: remove_mac
   until: remove_mac is succeeded
-  retries: 180
+  retries: 100
+  delay: 5
+
+- name: deploy | Aguardar a atualização da VM Base
+  virt: 
+    name: "{{ vm_base.name }}" 
+    command: status 
+  register: vmstatus 
+  until: vmstatus.status == 'shutdown' 
+  retries: 100 
   delay: 5
