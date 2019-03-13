@@ -1,5 +1,5 @@
 ---
-- name: Certificar que o diretório existe
+- name: pool | Certificar que o diretório existe
   file:
     path: "{{ pool.path }}/{{ pool.name }}"
     owner: "{{ pool.owner | d('root') }}"
@@ -8,19 +8,19 @@
     state: directory
   when: ((pool.name|d()) and (pool.state|d('active') not in [ 'undefined', 'absent' ]))
 
-- name: Certificar que o pool está definido
+- name: pool | Certificar que o pool está definido
   virt_pool:
     name: "{{ pool.name }}"
     command: define
     xml: '{{ lookup("template", "pool/" + pool.type + ".xml.j2") }}'
   when: ((pool.name|d()) and (pool.state|d('active') not in [ 'undefined', 'absent' ]))
 
-- name: Certificar que o pool está ativo
+- name: pool | Certificar que o pool está ativo
   virt_pool:
     name: "{{ pool.name }}"
     state: active
 
-- name: Certificar que a pool será iniciado no boot
+- name: pool | Certificar que a pool será iniciado no boot
   virt_pool:
     name: "{{ pool.name }}"
     autostart: yes

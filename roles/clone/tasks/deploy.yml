@@ -1,0 +1,63 @@
+---
+
+- name: deploy | {{ clone_dest }} | Criar diretório base da VM
+  file: 
+    state: directory 
+    path: "{{ vm_base_machine.pool.path }}/{{ clone_dest }}"
+    force: yes
+
+- name: deploy | {{ clone_dest }} | Iniciar o clone da VM
+  command: "virt-clone --original {{ clone_src }} --name {{ clone_dest}} --file {{ vm_base_machine.pool.path }}/{{ clone_dest }}/disk-root.qcow2"
+
+- name: deploy | {{ clone_dest }} | Alterar a memória máxima da VM
+  command: "virsh --connect qemu:///system setmaxmem {{ clone_dest }} {{ clone_memory }} --config"
+
+- name: deploy | {{ clone_dest }} | Alterar a vcpu máxima da VM
+  command: "virsh --connect qemu:///system setvcpus {{ clone_dest }} {{ clone_vcpus }} --config --maximum"
+
+- name: deploy | {{ clone_dest }} | Alterar o título da VM no KVM
+  command: "virsh --connect qemu:///system desc {{ clone_dest }} --title {{ clone_fqdn }} --config"
+
+- name: deploy | {{ clone_dest }} | Iniciar a VM no KVM
+  virt:
+    name: "{{ clone_dest }}"
+    command: start
+    autostart: True
+
+- name: deploy | {{ clone_dest }} | Capturar o endereço MAC da VM
+  shell: >
+     virsh --connect qemu:///system dumpxml {{ clone_dest }} | awk -F\' '/mac address/ {print $2}'
+  register: mac_info
+
+- name: deploy | {{ clone_dest }} | Aguardar pela conexão com a VM
+  wait_for:
+    path: "/var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status"
+    search_regex: "{{ mac_info.stdout }}"
+
+- name: deploy | {{ clone_dest }} | Capturar o endereço IP da VM
+  shell: >
+     grep -B1 {{ mac_info.stdout }} /var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+  register: vm_ip
+
+- name: deploy | {{ clone_dest }} | Incluir o endereço IP da VM no known_hosts
+  shell: "ssh-keyscan -t rsa {{ vm_ip.stdout }}  >> ~/.ssh/known_hosts"
+  become: false
+  ignore_errors: yes
+  register: add_known_host
+  until: "add_known_host is succeeded and not add_known_host.stderr.find('refused') != -1"
+  retries: 100
+  delay: 5
+
+- name: deploy | {{ clone_dest }} | Alterar o hostname da VM
+  shell: "ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ vm_ip.stdout }} -- sudo hostnamectl set-hostname {{ clone_fqdn }}"
+  ignore_errors: yes
+  become: false
+  register: set_hostname
+  until: set_hostname is succeeded
+  retries: 100
+  delay: 5
+
+- name: deploy | {{ clone_dest }} | Gerar arquivo com as informações da VM
+  template: 
+    src: vm-info.j2
+    dest: "{{ vm_base_machine.pool.path }}/{{ clone_dest }}/vm-info"

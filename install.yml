@@ -6,9 +6,16 @@
   roles: 
     - kvm
 
-- name: Provisionar VM Base para o Cluster
+- name: Provisionar VM Base para o Cluster OKD
   hosts: localhost
   become: True
   tags: vm-base
   roles: 
     - vm-base
+
+- name: Clonar VMs para o Cluster OKD a partir da VM Base
+  hosts: localhost
+  become: True
+  tags: clone
+  roles: 
+    - clone

@@ -1,5 +1,13 @@
 ---
 - include: prelude.yml
+  vars:
+    vm_base: "{{ vm_base_machine }}"
+
+- include: clean.yml
+  vars:
+    vm_base: "{{ vm_base_machine }}"
+  when: vm_base_info.list_vms | length > 0 and
+        vm_base_recreate | bool
 
 - include: network.yml
   vars:

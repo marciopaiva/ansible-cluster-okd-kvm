@@ -1,4 +1,8 @@
 ---
+
+# recriar a vm base caso exista.
+vm_base_recreate: True
+
 # Lista de pool para definir e iniciar.
 vm_base_host_pool: []
   # name: 'default'
