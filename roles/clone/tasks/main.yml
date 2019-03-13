@@ -54,3 +54,36 @@
   loop_control:
     loop_var: num
   when: vm_apps is defined and vm_apps.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs MASTERS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_masters.prefix }}{% if vm_masters.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_masters.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_masters is defined and vm_masters.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs INFRAS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_infras.prefix }}{% if vm_infras.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_infras.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_infras is defined and vm_infras.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs APPS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_apps.prefix }}{% if vm_apps.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_apps.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_apps is defined and vm_apps.vms|int > 0  

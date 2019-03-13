@@ -56,11 +56,11 @@ vm_base_machine:
 # Configurações para as VMs do cluster OKD
 # --------------------------------------------------------------------------------------------------------
 
-# recriar todo o cluster okd
+# configurações gerais
 okd_recreate: True
-
-# prefix no nome das vms
 okd_prefix: 'okd'
+okd_docker_storage_size: 20G 
+okd_docker_storage_disk: vdb  
 
 # configurações para vms load balancer
 vm_lbs:
@@ -74,12 +74,12 @@ vm_masters:
   prefix: 'master'
   vcpus: '2'
   memory: '2G'
-  vms: 2
+  vms: 1
 
 # configurações para vms infras
 vm_infras:
   prefix: 'infra'
-  vcpus: '4'
+  vcpus: '2'
   memory: '4G'
   vms: 2
 
@@ -88,4 +88,4 @@ vm_apps:
   prefix: 'app'
   vcpus: '4'
   memory: '4G'
-  vms: 2
+  vms: 3

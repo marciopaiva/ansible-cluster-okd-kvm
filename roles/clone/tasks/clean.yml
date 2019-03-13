@@ -23,7 +23,14 @@
   - okd_prefix is defined
   - item.find(okd_prefix | quote) != -1
   
-# - debug: 
-#     msg: "{{ item.find(okd_prefix|quote) }}"
-#   with_items:
-#   - "{{ vms_list.list_vms }}"
+- name: clean | Remover diretórios das VMs com {{ okd_prefix | upper }} no nome
+  file:
+    path: "{{ vm_base_machine.pool.path }}/{{ item }}"
+    state: absent
+    force: True
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+
