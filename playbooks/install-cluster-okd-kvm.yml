@@ -1,0 +1,44 @@
+---
+- name: Instalação e Configuração do KVM
+  hosts: localhost
+  become: True
+  tags: install
+  roles: 
+    - okd_kvm_install
+
+- name: Provisionar VM Base para o Cluster OKD
+  hosts: localhost
+  become: True
+  tags: template
+  roles: 
+    - okd_kvm_template
+
+- name: Clonar VMs para o Cluster OKD a partir da VM Base
+  hosts: localhost
+  become: True
+  tags: deploy
+  roles: 
+    - okd_kvm_clone
+
+- name: Configurar DNSMasq para o Cluster OKD
+  hosts: localhost
+  become: True
+  tags: deploy
+  roles: 
+    - okd_kvm_dnsmasq
+
+- name: Gerar ansible hosts para o Cluster OKD
+  hosts: localhost
+  become: True
+  tags: deploy
+  roles: 
+    - okd_kvm_files
+
+- name: Configurar VMs do Cluster OKD
+  hosts: all_nodes
+  gather_facts: no
+  become: True
+  tags: deploy
+  roles: 
+    - okd_kvm_prerequisites
+

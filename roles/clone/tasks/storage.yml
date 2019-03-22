@@ -1,7 +1,0 @@
----
-- name: storage | {{ storage_dest }} | Criar docker storage para a VM
-  command: "qemu-img create -f raw {{ vm_base_machine.pool.path }}/{{ storage_dest }}/disk-docker.qcow2 {{ storage_size }}"
-
-- name: storage | {{ storage_dest }} | Anexar docker storage na VM
-  shell: >
-     virsh attach-disk {{ storage_dest }} {{ vm_base_machine.pool.path }}/{{ storage_dest }}/disk-docker.qcow2 {{ storage_type }} --live --persistent

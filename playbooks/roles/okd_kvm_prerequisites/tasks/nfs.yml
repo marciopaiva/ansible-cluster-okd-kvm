@@ -1,0 +1,46 @@
+---
+
+- name: Criando a partição na VM 
+  parted:
+    device: /dev/{{ okd_nfs_storage_disk }}
+    number: 1
+    state: present
+
+- name: Criando o filesystem na VM
+  filesystem:
+    fstype: xfs
+    dev: /dev/{{ okd_nfs_storage_disk }}1
+
+- name: Criando o ponto de montagem
+  mount:
+    fstype: xfs
+    src: /dev/{{ okd_nfs_storage_disk }}1
+    path: /exports
+    state: mounted
+
+- name: Criando arquivo exports
+  template:
+    backup: yes
+    dest: /etc/exports
+    src: exports.j2
+
+- name: Verificar se o serviço nfs-server está ativo
+  service:
+    name: nfs-server
+    state: started
+    enabled: True
+
+- name: Verificar se o serviço nfs-lock está ativo
+  service:
+    name: nfs-lock
+    state: started
+    enabled: True
+
+- name: Verificar se o serviço nfs-idmap está ativo
+  service:
+    name: nfs-idmap
+    state: started
+    enabled: True
+
+- name: Realizando o compartilhamento
+  command: exportfs -ar

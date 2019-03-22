@@ -1,0 +1,7 @@
+---
+- name: storage | Criar storage para a VM
+  command: "qemu-img create -f raw {{ vm_base_machine.pool.path }}/{{ storage_dest }}/disk-storage.qcow2 {{ storage_size }}"
+
+- name: storage | Anexar storage na VM
+  shell: >
+     virsh attach-disk {{ storage_dest }} {{ vm_base_machine.pool.path }}/{{ storage_dest }}/disk-storage.qcow2 {{ storage_type }} --live --persistent

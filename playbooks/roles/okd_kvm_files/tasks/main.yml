@@ -1,0 +1,46 @@
+---
+
+- name: Aguardando por conexão
+  wait_for: 
+    timeout: 30
+
+- name: Clonar o repositório ansible do OKD
+  git:
+    dest: "{{ okd_ansible_playbook_path }}"
+    repo: "https://github.com/openshift/openshift-ansible" 
+    force: yes
+    clone: yes 
+    update: yes 
+    remote: origin 
+    version: "release-{{ okd_version }}" 
+
+- name: Gerar arquivo hosts para o cluster
+  template: 
+    src: hosts.j2 
+    dest: "{{ okd_ansible_playbook_path }}/inventory/okd_hosts" 
+
+- name: Gerar arquivo hosts vars para o cluster
+  template: 
+    src: hosts_vars.j2 
+    dest: "{{ okd_ansible_playbook_path }}/inventory/okd_hosts_vars"
+
+- name: Formatar variáveis do arquivo hosts 
+  replace:
+    path: "{{ okd_ansible_playbook_path }}/inventory/okd_hosts_vars"
+    regexp: '(\b:) '
+    replace: '='
+
+- name: Carregar variáveis do arquivo hosts
+  command: "cat {{ okd_ansible_playbook_path }}/inventory/okd_hosts_vars"
+  register: "okd_conf"
+
+- name: Gerar arquivo hosts final
+  lineinfile:
+    path: "{{ okd_ansible_playbook_path }}/inventory/okd_hosts"
+    line: "{{okd_conf.stdout}}"
+    insertafter: "OSEv3:vars"
+
+- name: Sobrescrever arquivo ansible.cfg do OKD
+  template:
+    src: ansible.cfg.j2 
+    dest: "{{ okd_ansible_playbook_path }}/ansible.cfg"

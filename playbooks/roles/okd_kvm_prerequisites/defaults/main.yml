@@ -1,0 +1,6 @@
+---
+
+okd_nfs_shares:
+  - path: /exports
+    host: "{{ vm_base_network.addresses[0] }}"
+    options: rw,root_squash

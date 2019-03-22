@@ -1,0 +1,86 @@
+---
+
+- name: deploy | Criar diretório base da VM
+  file: 
+    state: directory 
+    path: "{{ vm_base_machine.pool.path }}/{{ clone_dest }}"
+    force: yes
+
+- name: deploy | Iniciar o clone da VM
+  command: "virt-clone --original {{ clone_src }} --name {{ clone_dest}} --file {{ vm_base_machine.pool.path }}/{{ clone_dest }}/disk-root.qcow2"
+
+- name: deploy | Alterar a memória máxima da VM
+  command: "virsh --connect qemu:///system setmaxmem {{ clone_dest }} {{ clone_memory }} --config"
+
+- name: deploy | Alterar a vcpu máxima da VM
+  command: "virsh --connect qemu:///system setvcpus {{ clone_dest }} {{ clone_vcpus }} --config --maximum"
+
+- name: deploy | Alterar o título da VM no KVM
+  command: "virsh --connect qemu:///system desc {{ clone_dest }} --title {{ clone_fqdn }} --config"
+
+- name: deploy | Iniciar a VM no KVM
+  virt:
+    name: "{{ clone_dest }}"
+    command: start
+    autostart: True
+
+- name: deploy | Capturar o endereço MAC da VM
+  shell: >
+     virsh --connect qemu:///system dumpxml {{ clone_dest }} | awk -F\' '/mac address/ {print $2}'
+  register: mac_info
+
+- name: deploy | Aguardar pela conexão com a VM
+  wait_for:
+    path: "/var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status"
+    search_regex: "{{ mac_info.stdout }}"
+
+- name: deploy | Capturar o endereço IP da VM
+  shell: >
+     grep -B1 {{ mac_info.stdout }} /var/lib/libvirt/dnsmasq/{{ vm_base_network.bridge }}.status | head -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//
+  register: vm_ip
+
+- name: deploy | Incluir o endereço IP da VM no known_hosts
+  shell: "ssh-keyscan -t rsa {{ vm_ip.stdout }}  >> ~/.ssh/known_hosts"
+  become: false
+  ignore_errors: yes
+  register: add_known_host
+  until: "add_known_host is succeeded and not add_known_host.stderr.find('refused') != -1"
+  retries: 100
+  delay: 5
+
+- name: deploy | Alterar o hostname da VM
+  command: "hostnamectl set-hostname {{ clone_fqdn }}"
+  delegate_to: '{{ vm_ip.stdout }}'
+
+- name: deploy | Incluir hostname da VM na interface de rede
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+    line: 'DHCP_HOSTNAME={{ clone_fqdn }}'
+    state: present
+    create: yes
+  delegate_to: '{{ vm_ip.stdout }}'
+
+- name: deploy | Incluir o PEERDNS da VM na interface de rede
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+    line: 'PEERDNS=yes'
+    state: present
+    create: yes
+  delegate_to: '{{ vm_ip.stdout }}'
+
+- name: deploy | Reiniciar a interface de rede da VM
+  command: "service network restart"
+  delegate_to: '{{ vm_ip.stdout }}'
+
+- name: deploy | Gerar arquivo com as informações da VM
+  template: 
+    src: vm-info.j2
+    dest: "{{ vm_base_machine.pool.path }}/{{ clone_dest }}/vm-info"
+
+- name: deploy | Incluir informações da VM para o inventário 
+  add_host:
+    name: "{{ vm_ip.stdout }}"
+    hostname: "{{ clone_fqdn }}"
+    groups: "{{ clone_groups }}"
+    openshift_public_hostname: "{{ clone_fqdn }}"
+    openshift_node_group_name: "{{ clone_okd_group }}"

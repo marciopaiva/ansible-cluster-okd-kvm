@@ -1,0 +1,74 @@
+---
+# --------------------------------------------------------------------------------------------------------
+# Configurações do cluster OKD
+# --------------------------------------------------------------------------------------------------------
+
+# configurações gerais
+okd_recreate: True
+okd_prefix: 'okd'
+okd_version: 3.11
+okd_docker_version: 1.13.1
+
+okd_default_subdomain: 'apps.{{ vm_base_network.domain }}'  ## <wildcard>.apps.example.com
+okd_public_hostname: 'okd.{{ vm_base_network.domain }}'     ## https://okd.example.com:8443
+okd_ansible_playbook_path: /tmp/openshift-ansible
+
+# configurações do disco para o docker
+okd_docker_storage_size: 20G 
+okd_docker_storage_disk: vdb
+
+# configurações do disco para o nfs
+okd_nfs_storage_size: 50G
+okd_nfs_storage_disk: vdb
+
+okd_use_crio: False
+
+# --------------------------------------------------------------------------------------------------------
+# Configurações da maquinas virtuais
+# --------------------------------------------------------------------------------------------------------
+
+# configurações para vms masters
+# caso o numero de master seja superior a 1
+# será adicionada uma vm para lb
+vm_masters:
+  prefix: 'master'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1
+
+# configurações para vms etcd
+# se não for especificar o etcd será feito o deploy
+# nas maquinas masters
+# vm_etcds:
+#   prefix: 'etcd'
+#   vcpus: '2'
+#   memory: '2G'
+#   vms: 1
+
+# configurações para vms infras
+vm_infras:
+  prefix: 'infra'
+  vcpus: '2'
+  memory: '4G'
+  vms: 1
+
+# configurações para vms nodes
+vm_nodes:
+  prefix: 'nodes'
+  vcpus: '4'
+  memory: '4G'
+  vms: 1
+
+# configurações para vm nfs
+vm_nfs:
+  prefix: 'nfs'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1
+
+# configurações para vm de load balancer
+vm_lbs:
+  prefix: 'lb'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1

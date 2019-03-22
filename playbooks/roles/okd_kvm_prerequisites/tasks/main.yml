@@ -1,0 +1,7 @@
+---
+
+- include: docker.yml
+  when: "'docker' in groups and inventory_hostname in groups['docker']" 
+
+- include: nfs.yml
+  when: "'nfs' in groups and inventory_hostname in groups['nfs']" 

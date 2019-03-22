@@ -1,0 +1,140 @@
+---
+
+- include: clean.yml
+  when: okd_recreate
+
+- name: Realizando o deploy para a VM de LOADBALANCE
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_lbs.prefix }}"
+    clone_fqdn: "{{ vm_lbs.prefix }}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_lbs.memory }}"
+    clone_vcpus: "{{ vm_lbs.vcpus }}"
+    clone_groups: all_nodes, lb
+    clone_okd_group: lb
+  when: vm_lbs is defined and vm_masters.vms|int > 1 
+
+- name: Realizando o deploy para a VM de NFS
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_nfs.prefix }}"
+    clone_fqdn: "{{ vm_nfs.prefix }}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_nfs.memory }}"
+    clone_vcpus: "{{ vm_nfs.vcpus }}"
+    clone_groups: all_nodes, nfs
+    clone_okd_group: nfs
+  when: vm_nfs is defined
+
+- name: Realizando o deploy para as VMs MASTERS
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_masters.prefix }}{% if vm_masters.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    clone_fqdn: "{{ vm_masters.prefix }}{% if vm_masters.vms > 1 %}{{ num }}{% else %}{% endif %}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_masters.memory }}"
+    clone_vcpus: "{{ vm_masters.vcpus }}"
+    clone_groups: all_nodes, docker, masters, nodes{% if vm_etcds is not defined %}, etcd {% endif %}
+    clone_okd_group: node-config-master
+  loop: "{{ range(1,vm_masters.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_masters is defined and vm_masters.vms|int > 0  
+
+- name: Realizando o deploy para as VMs ETCDS
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_etcds.prefix }}{% if vm_etcds.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    clone_fqdn: "{{ vm_etcds.prefix }}{% if vm_etcds.vms > 1 %}{{ num }}{% else %}{% endif %}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_etcds.memory }}"
+    clone_vcpus: "{{ vm_etcds.vcpus }}"
+    clone_groups: all_nodes, docker, etcd
+    clone_okd_group: etcd
+  loop: "{{ range(1,vm_etcds.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_etcds is defined and vm_etcds.vms|int > 0  
+
+- name: Realizando o deploy para as VMs INFRAS
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_infras.prefix }}{% if vm_infras.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    clone_fqdn: "{{ vm_infras.prefix }}{% if vm_infras.vms > 1 %}{{ num }}{% else %}{% endif %}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_infras.memory }}"
+    clone_vcpus: "{{ vm_infras.vcpus }}"
+    clone_groups: all_nodes, docker, nodes, infra_nodes
+    clone_okd_group: "{% if vm_nodes is defined %}node-config-infra{% else %}node-config-compute{% endif %}"
+  loop: "{{ range(1,vm_infras.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_infras is defined and vm_infras.vms|int > 0  
+
+- name: Realizando o deploy para as VMs NODES
+  include: deploy.yml
+  vars:
+    clone_src: "{{ vm_base_machine.name }}"
+    clone_dest: "{{ okd_prefix }}-{{ vm_nodes.prefix }}{% if vm_nodes.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    clone_fqdn: "{{ vm_nodes.prefix }}{% if vm_nodes.vms > 1 %}{{ num }}{% else %}{% endif %}.{{ vm_base_network.domain }}"
+    clone_memory: "{{ vm_nodes.memory }}"
+    clone_vcpus: "{{ vm_nodes.vcpus }}"
+    clone_groups: all_nodes, docker, nodes, app_nodes
+    clone_okd_group: node-config-compute
+  loop: "{{ range(1,vm_nodes.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_nodes is defined and vm_nodes.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs MASTERS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_masters.prefix }}{% if vm_masters.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_masters.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_masters is defined and vm_masters.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs ETCDS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_etcds.prefix }}{% if vm_etcds.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_etcds.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_etcds is defined and vm_etcds.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs INFRAS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_infras.prefix }}{% if vm_infras.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_infras.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_infras is defined and vm_infras.vms|int > 0  
+
+- name: Adicionando o docker storage para as VMs NODES
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_nodes.prefix }}{% if vm_nodes.vms > 1 %}-{{ num }}{% else %}{% endif %}"
+    storage_size: "{{ okd_docker_storage_size }}"
+    storage_type: "{{ okd_docker_storage_disk }}"
+  loop: "{{ range(1,vm_nodes.vms|int + 1,1)|list }}"
+  loop_control:
+    loop_var: num
+  when: vm_nodes is defined and vm_nodes.vms|int > 0  
+
+- name: Adicionando o nfs storage para a VM NFS
+  include: storage.yml
+  vars:
+    storage_dest: "{{ okd_prefix }}-{{ vm_nfs.prefix }}"
+    storage_size: "{{ okd_nfs_storage_size }}"
+    storage_type: "{{ okd_nfs_storage_disk }}"
+  when: vm_nfs is defined 

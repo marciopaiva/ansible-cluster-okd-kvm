@@ -1,0 +1,51 @@
+---
+
+- include: config.yml
+  when: groups['all_nodes'] is defined
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ hostvars[item]['openshift_public_hostname'] }}" 
+  with_items:
+  - "{{ groups['all_nodes'] }}"
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_public_hostname }}" 
+  with_items:
+  - "{{ groups['lb'] }}"
+  when: 
+    - groups['lb'] is defined
+    - vm_masters.vms|int > 1
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_public_hostname }}" 
+  with_items:
+  - "{{ groups['masters'] }}"
+  when:
+    - groups['masters'] is defined 
+    - vm_masters.vms|int == 1
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_default_subdomain }}" 
+  with_items:
+  - "{{ groups['infra_nodes'] }}"
+  when:
+    - groups['all_nodes'] is defined
+
+- name: Reiniciar o serviço NetworkManager
+  systemd:
+    name: NetworkManager
+    daemon_reload: yes
+    state: restarted
+
+
+
+
+
