@@ -1,0 +1,6 @@
+hostname,fqdn,in_groups,okd_group,kvm_name
+192.168.200.69,nfs.example.com,nfs,nfs,okd-nfs
+192.168.200.144,master.example.com,docker|nodes|etcd|masters,node-config-master,okd-master
+192.168.200.122,infra.example.com,docker|nodes|infra_nodes,node-config-infra,okd-infra
+192.168.200.120,node1.example.com,docker|nodes|app_nodes,node-config-compute,okd-node-1
+192.168.200.34,node2.example.com,docker|nodes|app_nodes,node-config-compute,okd-node-2

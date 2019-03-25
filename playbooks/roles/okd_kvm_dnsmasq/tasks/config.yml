@@ -1,0 +1,27 @@
+---
+
+- name: config | Configurar NetworkManager com dnsmasq
+  copy: 
+    src: 00-dnsmasq.conf
+    dest: "{{ dnsmasq.plugin_conf }}/00-dnsmasq.conf"
+
+- name: config | Configurar DNSMasq para o KVM
+  copy: 
+    src: 00-libvirt.conf
+    dest: "{{ dnsmasq.dnsmasq_conf }}/00-libvirt.conf"
+
+- name: config | Excluir configurações DNS para o cluster OKD
+  file:
+    path: "{{ dnsmasq.dnsmasq_conf }}/10-okd.conf"
+    state: absent
+
+- name: config | Configurar DNS para o cluster OKD
+  file:
+    path: "{{ dnsmasq.dnsmasq_conf }}/10-okd.conf"
+    state: touch
+
+- name: config | Adicionar DHCP Server para o OKD
+  lineinfile:
+    path: "{{ dnsmasq.dnsmasq_conf }}/10-okd.conf"
+    line: >
+       server={{ vm_base_network.addresses[0] | ipaddr('address') }}

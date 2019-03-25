@@ -1,0 +1,28 @@
+---
+- name: validate | Verificar se a tecnologia de virtualização (VT) está ativa
+  command: grep -c -E 'svm|vmx' /proc/cpuinfo
+  changed_when: False
+  failed_when: False
+  register: result
+
+- name: validate | Coletar as informações sobre a tecnologia (VT) se ativa
+  set_fact:
+    kvm_host_vt_enabled: "{{ result.rc == 0 }}"
+
+- name: validate | Notificar se a tecnologia de virtualização (VT) está desativada
+  debug:
+    msg: >
+      Virtualization Technology (VT) está desativado no momento. 
+      Por favor, habilite o VT antes de executar esse playbook novamente.
+  when:
+    - not kvm_host_require_vt | bool
+    - not kvm_host_vt_enabled
+
+- name: validate | Falhar se a tecnologia de virtualização (VT) estiver desativada
+  fail:
+    msg: >
+      Virtualization Technology (VT) está desativado no momento. 
+      Por favor, habilite o VT antes de executar esse playbook novamente.
+  when:
+    - kvm_host_require_vt | bool
+    - not kvm_host_vt_enabled

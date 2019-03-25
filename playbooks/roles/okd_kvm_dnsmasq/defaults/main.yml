@@ -1,0 +1,7 @@
+# --------------------------------------------------------------------------------------------------------
+# Configurações para o DNSMasq do cluster OKD
+# --------------------------------------------------------------------------------------------------------
+
+dnsmasq:
+  plugin_conf: /etc/NetworkManager/conf.d
+  dnsmasq_conf: /etc/NetworkManager/dnsmasq.d

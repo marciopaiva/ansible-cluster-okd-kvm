@@ -1,0 +1,35 @@
+---
+
+- name: install | Instalar repositórios adicionais
+  yum_repository: "{{ item }}"
+  loop: "{{ kvm_host_custom_yum_repos | default([]) }}"
+
+- name: install | Verificar se o repositório EPEL está ativado
+  yum:
+    name: epel-release
+    state: installed
+  register: result
+  until: result is success
+  retries: 3
+  when:
+    - ansible_os_family == "RedHat"
+    - kvm_host_qemu_emulators | length > 0
+
+- name: install | Instalar os pacotes necessários
+  package:
+    name: "{{ kvm_host_libvirt_packages }}"
+    state: installed
+  register: result
+  until: result is success
+  retries: 3
+
+- name: install | Instalar os pacotes QEMU emulator
+  package:
+    name: "{{ package }}"
+    state: installed
+  with_items: "{{ kvm_host_qemu_emulators }}"
+  register: result
+  until: result is success
+  retries: 3
+  vars:
+    package: "qemu-system-{{ item }}"

@@ -1,0 +1,28 @@
+
+[defaults]
+log_path = /tmp/okd-install.log
+forks = 20
+host_key_checking = False
+retry_files_enabled = False
+retry_files_save_path = /tmp/okd-install/ansible-installer-retries
+nocows = True
+remote_user = {{ ansible_user }}
+roles_path = roles/
+gathering = smart
+fact_caching = jsonfile
+fact_caching_connection = /tmp/okd-install/facts
+fact_caching_timeout = 600
+callback_whitelist = profile_tasks
+inventory_ignore_extensions = secrets.py, .pyc, .cfg, .crt, .ini
+timeout = 30
+
+inventory = inventory/okd_hosts
+
+[inventory]
+unparsed_is_failed = true
+
+[ssh_connection]
+pipelining = True
+ssh_args = -o ControlMaster=auto -o ControlPersist=600s
+timeout = 10
+control_path = %(directory)s/%%h-%%r

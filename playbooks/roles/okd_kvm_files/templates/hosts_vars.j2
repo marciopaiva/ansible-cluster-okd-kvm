@@ -1,0 +1,87 @@
+
+###############################################################################
+# Common/ Required configuration variables follow                             #
+###############################################################################
+
+ansible_user={{ ansible_user }}
+ansible_become=yes
+
+openshift_deployment_type=origin
+openshift_master_default_subdomain={{ okd_default_subdomain }} 
+openshift_master_cluster_hostname={{ okd_public_hostname }}
+openshift_master_cluster_public_hostname={{ okd_public_hostname }}
+
+openshift_release="3.11"
+openshift_pkg_version=-3.11.0
+openshift_image_tag=v3.11.0
+
+openshift_clock_enabled=true
+openshift_enable_unsupported_configurations=True
+openshift_disable_check=disk_availability,docker_storage,memory_availability,docker_image_availability
+openshift_master_cluster_method="native"
+openshift_master_audit_config={"enabled": true}
+openshift_override_hostname_check=true
+
+openshift_additional_repos=[{'id': 'centos-okd-ci', 'name': 'centos-okd-ci', 'baseurl' :'https://rpms.svc.ci.openshift.org/openshift-origin-v3.11', 'gpgcheck' :'0', 'enabled' :'1'}]
+
+###############################################################################
+# Additional configuration variables follow                                   #
+###############################################################################
+
+debug_level=2
+
+# Docker
+openshift_docker_options: '--log-driver=json-file --signature-verification=False --selinux-enabled --log-opt max-size=1M --log-opt max-file=3 -l warn --ipv6=false'
+
+#
+# Login: admin Password: admin
+#
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
+openshift_master_htpasswd_users={'admin': '$apr1$4g2hktwl$C3haqTipHqwKEnUcS9t5S/', 'developer': '$apr1$4g2hktwl$C3haqTipHqwKEnUcS9t5S/'}
+
+#
+# Enable cockpit
+#
+osm_use_cockpit=true
+osm_cockpit_plugins=['cockpit-kubernetes']
+
+#
+# Openshift Registry Options
+#
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_host=nfs.{{ vm_base_network.domain }}
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=10Gi
+
+#
+# Metrics deployment
+#
+openshift_metrics_install_metrics=True
+openshift_metrics_storage_kind=nfs
+openshift_metrics_storage_access_modes=['ReadWriteOnce']
+openshift_metrics_storage_host=nfs.{{ vm_base_network.domain }}
+openshift_metrics_storage_nfs_directory=/exports
+openshift_metrics_storage_volume_name=metrics
+openshift_metrics_storage_volume_size=10Gi
+openshift_metrics_storage_labels={'storage': 'metrics'}
+
+#
+# Logging deployment
+#
+#openshift_logging_install_logging=True
+#openshift_logging_es_nodeselector={"node-role.kubernetes.io/infra":"true"}
+#openshift_logging_storage_kind=nfs
+#openshift_logging_storage_access_modes=['ReadWriteOnce']
+#openshift_logging_storage_host=nfs.{{ vm_base_network.domain }}
+#openshift_logging_storage_nfs_directory=/exports
+#openshift_logging_storage_volume_name=logging
+#openshift_logging_storage_volume_size=10Gi
+#openshift_logging_storage_labels={'storage': 'logging'}
+
+os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
+
+openshift_enable_service_catalog=true
+template_service_broker_install=true
+ansible_service_broker_install=false

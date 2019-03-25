@@ -1,0 +1,126 @@
+---
+# Exigir que a tecnologia de virtualização (VT) seja habilitada para executar este papel. 
+# Embora isso forneça melhor desempenho da VM, talvez ela não esteja disponível em determinados ambientes.
+kvm_host_require_vt: true
+
+# Configuro como true pois utilizo o cockpit para gerir docker e outras ferramentas
+kvm_host_require_cockpit: true
+
+# --------------------------------------------------------------------------------------------------------
+# Configurações para a VM base para o projeto
+# --------------------------------------------------------------------------------------------------------
+
+# recriar a vm base caso exista.
+vm_base_recreate: True
+
+vm_base_timezone: 'America/Sao_Paulo'
+
+# configuração da rede que será utilizada no projeto okd
+vm_base_network:
+  name: 'okd'
+  type: 'dnsmasq'
+  domain: 'example.com'
+  bridge: 'virbr1'
+  addresses: [ '192.168.200.1/24' ]
+  forward: True
+  dhcp_range: [ '2', '-2' ]
+  dhcp: True
+
+# configurações da vm-base a ser criada
+vm_base_machine: 
+  name: 'vm-base'
+  hostname: 'base'
+  description: 'Template para clone das VMs do OKD'
+  state: present
+  memory_mb: 2048
+  vcpus: 2
+  autostart: true
+  pool:
+    name: 'vm-base'
+    type: 'dir'
+    path: '/workspace/kvm'
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'    
+  volumes:
+    - name: 'disk-root'
+      device: 'disk'
+      format: 'qcow2'
+      capacity: '20G'
+    - name: 'boot'
+      device: 'cdrom'
+      format: 'raw'
+  interfaces:
+    - network: 'okd'
+
+# --------------------------------------------------------------------------------------------------------
+# Configurações do cluster OKD
+# --------------------------------------------------------------------------------------------------------
+
+# configurações gerais
+okd_recreate: True
+okd_prefix: 'okd'
+okd_version: 3.11
+okd_docker_version: 1.13.1
+
+okd_default_subdomain: 'apps.{{ vm_base_network.domain }}'  ## <wildcard>.apps.example.com
+okd_public_hostname: 'okd.{{ vm_base_network.domain }}'     ## https://okd.example.com:8443
+
+# configurações do disco para o docker
+okd_docker_storage_size: 20G 
+okd_docker_storage_disk: vdb
+
+# configurações do disco para o nfs
+okd_nfs_storage_size: 50G
+okd_nfs_storage_disk: vdb
+
+
+# --------------------------------------------------------------------------------------------------------
+# Configurações da maquinas virtuais
+# --------------------------------------------------------------------------------------------------------
+
+# configurações para vms masters 
+# caso o numero de master seja superior a 1
+# será adicionada uma vm para lb
+# (obrigatória)
+vm_masters:
+  prefix: 'master'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1   # utilizar valores impar 1 3 5 ... 
+
+# configurações para vms etcd
+# se não for especificar o etcd será feito o deploy
+# nas maquinas masters
+# (opcional)
+# vm_etcds:
+#   prefix: 'etcd'
+#   vcpus: '2'
+#   memory: '2G'
+#   vms: 1
+
+# configurações para vms infras
+# (obrigatória)
+vm_infras:
+  prefix: 'infra'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1
+
+# configurações para vms nodes
+# se não especificar o vm_nodes a vm_infras serão
+# utilizadas como nodes
+# (opcional)
+vm_nodes:
+  prefix: 'node'
+  vcpus: '4'
+  memory: '4G'
+  vms: 2
+
+# configurações para vm nfs
+# (recomendado)
+vm_nfs:
+  prefix: 'nfs'
+  vcpus: '2'
+  memory: '2G'
+  vms: 1
+

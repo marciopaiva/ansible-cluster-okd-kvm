@@ -1,0 +1,3 @@
+{% for item in okd_nfs_shares %}
+{{ item.path }} {{ item.host }}({{ item.options | default("ro,all_squash") }})
+{% endfor %}

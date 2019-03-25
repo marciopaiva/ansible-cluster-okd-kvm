@@ -1,0 +1,52 @@
+[OSEv3:children]
+masters
+etcd
+nodes
+{% if vm_lbs is defined -%}
+lb
+{% endif %}
+{% if vm_nfs is defined -%}
+nfs
+{% endif %}
+
+[masters]
+{% for item in groups.all -%}
+{% if hostvars[item].in_groups.find('masters') != -1 -%}
+{{item}}
+{% endif %}
+{% endfor %}
+
+[etcd]
+{% for item in groups.all -%}
+{% if hostvars[item].in_groups.find('etcd') != -1 -%}
+{{item}}
+{% endif %}
+{% endfor %}
+
+{% if vm_lbs is defined -%}
+[lb]
+{% for item in groups.all -%}
+{% if hostvars[item].in_groups.find('lb') != -1 -%}
+{{item}}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if vm_nfs is defined -%}
+[nfs]
+{% for item in groups.all -%}
+{% if hostvars[item].in_groups.find('nfs') != -1 -%}
+{{item}}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+[nodes]
+{% for item in groups.all -%}
+{% if hostvars[item].in_groups.find('nodes') != -1 -%}
+{{item}} openshift_node_group_name='{{ hostvars[item].okd_group }}'
+{% endif %}
+{% endfor %}
+
+[OSEv3:vars]
+

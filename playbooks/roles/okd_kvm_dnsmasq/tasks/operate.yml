@@ -1,0 +1,9 @@
+---
+
+- name: operate | Adicionar entrada DNS para o Cluster OKD
+  lineinfile:
+    path: "{{ dnsmasq.dnsmasq_conf }}/10-okd.conf"
+    line: >
+       address=/{{ new_hostname }}/{{ new_ip }}
+
+

@@ -1,0 +1,36 @@
+---
+- include: prelude.yml
+  vars:
+    vm_base: "{{ vm_base_machine }}"
+
+- include: clean.yml
+  vars:
+    vm_base: "{{ vm_base_machine }}"
+  when: vm_base_info.list_vms | length > 0 and
+        vm_base_recreate | bool
+
+- include: network.yml
+  vars:
+    network: "{{ vm_base_network }}"
+
+- include: pool.yml
+  vars:
+    pool: "{{ vm_base_machine.pool }}"
+
+- include: autodetect.yml
+
+- include: download.yml
+
+- include: cloud-init.yml
+  vars:
+    network: "{{ vm_base_network }}"
+    pool: "{{ vm_base_machine.pool }}"
+    volumes: "{{ vm_base_machine.volumes }}"
+
+- include: deploy.yml
+  vars:
+    vm_base: "{{ vm_base_machine }}"
+    volumes: "{{ vm_base_machine.volumes }}"
+    pool: "{{ vm_base_machine.pool }}"
+    network: "{{ vm_base_network }}"
+    machine_default: "{{ none if vm_base_engine == 'kvm' else 'pc-1.0' }}"

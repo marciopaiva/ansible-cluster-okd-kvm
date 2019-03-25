@@ -1,0 +1,71 @@
+---
+
+- name: clean | Coletar lista de VMs instaladas
+  virt: 
+    command: list_vms
+  register: vms_list
+
+- name: clean | Destruir VMs com {{ okd_prefix | upper }} no nome
+  virt: 
+    state: destroyed
+    name: "{{ item }}"
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+
+- name: clean | Destruir Pools das VMs com {{ okd_prefix | upper }} no nome
+  virt_pool: 
+    command: destroy
+    name: "{{ item }}"
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+
+- name: clean | Remover storages das VMs com {{ okd_prefix | upper }} no nome
+  command: "virsh --connect qemu:///system undefine {{ item }} --remove-all-storage"
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+  
+- name: clean | Remover diretórios das VMs com {{ okd_prefix | upper }} no nome
+  file:
+    path: "{{ vm_base_machine.pool.path }}/{{ item }}"
+    state: absent
+    force: True
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+
+- name: clean | Remover Pools das VMs com {{ okd_prefix | upper }} no nome
+  virt_pool: 
+    state: absent
+    name: "{{ item }}"
+  with_items:
+  - "{{ vms_list.list_vms }}"
+  when:
+  - okd_prefix is defined
+  - item.find(okd_prefix | quote) != -1
+
+- name: clean | Remover VM Base do known_hosts
+  lineinfile:
+    path: "~/.ssh/known_hosts"
+    state: absent
+    regexp: "{{item}}"
+  become: false
+  with_items:
+    - "{{ vm_base_network.domain }}"
+    - "{{ vm_base_network.addresses[0].split('.')[0:3] | join('.') }}"
+
+- name: clean | Limpar arquivo de inventário para as VMs
+  copy:
+    dest: "../inventory/inventory.csv"
+    content: |
+      hostname,fqdn,in_groups,okd_group,kvm_name

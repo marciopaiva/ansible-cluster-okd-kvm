@@ -1,0 +1,71 @@
+---
+# Exigir que a tecnologia de virtualização (VT) esteja habilitada para executar este papel. 
+# Embora isso forneça melhor desempenho da VM, talvez ela não esteja disponível em determinados ambientes.
+kvm_host_require_vt: true
+
+# Exige a instalação e suporte para o cockpit
+kvm_host_require_cockpit: false
+
+# Lista de arquiteturas para instalar emuladores do sistema QEMU, por ex. x86.
+kvm_host_qemu_emulators: "{{ [] if kvm_host_require_vt | bool else ['x86'] }}"
+
+# Exigir que o suporte a UEFI seja habilitado.
+# Em alguns casos, isso requer a instalação de pacotes extras.
+kvm_host_enable_efi_support: false
+
+# Altera o caminho dentro de /var/run em que o libvirt usa para armazenar o soquetes de domínio unix, 
+# bem como o nome padrão do arquivo PID. Sobrescreva isso se você tiver um conflito com o soquete padrão,
+# por exemplo, ele pode estar em uso pelo contêiner nova_libvirt
+kvm_host_var_prefix: ""
+
+# Local onde os soquetes do domínio Unix serão armazenados
+kvm_unix_sock_dir: /var/run/libvirt
+
+# Caminho para o arquivo PID que impede que várias instâncias do daemon sejam geradas
+kvm_host_pid_path: >-
+  {%- if kvm_host_var_prefix -%}
+  /var/run/{{ kvm_host_var_prefix }}.pid
+  {%- endif -%}
+
+# Argumentos de linha de comando passados para o libvirtd pelo sistema init
+kvm_host_libvirtd_args: >-
+  {%- if kvm_host_pid_path -%}
+  -p {{ kvm_host_pid_path }}
+  {%- endif %}
+
+# URI de conexão com o libvirt
+kvm_host_uri: >-
+  {%- if kvm_unix_sock_dir -%}
+  qemu+unix:///system?socket={{ kvm_unix_sock_dir }}/libvirt-sock
+  {%- endif %}
+
+# Configurações para o libvirt.conf
+kvm_enable_tls: true
+kvm_enable_tcp: false
+kvm_tls_port: 16514
+kvm_tcp_port: 16509
+kvm_listen_addr: 0.0.0.0
+kvm_enable_mdns: false
+kvm_auth_unix_ro: none
+kvm_auth_unix_rw: none
+kvm_max_clients: 5000
+kvm_max_queued_clients: 1000
+kvm_max_anonymous_clients: 20
+kvm_min_workers: 5
+kvm_max_workers: 20
+kvm_prio_workers: 5
+kvm_max_requests: 20
+kvm_max_client_requests: 5
+kvm_admin_min_workers: 1
+kvm_admin_max_workers: 5
+kvm_admin_max_clients: 5
+kvm_admin_max_queued_clients: 5
+kvm_admin_max_client_requests: 5
+kvm_log_level: 3
+kvm_enable_libvirtd_syslog: false
+kvm_audit_logging: 0
+kvm_keepalive_interval: 5
+kvm_keepalive_count: 5
+kvm_admin_keepalive_interval: 5
+kvm_admin_keepalive_count: 5
+kvm_ovs_timeout: 5

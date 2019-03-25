@@ -1,0 +1,10 @@
+---
+- name: restart libvirt
+  service:
+    name: libvirtd
+    state: restarted
+
+- name: restart cockpit
+  service:
+    name: cockpit.socket
+    state: restarted

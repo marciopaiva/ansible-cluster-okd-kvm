@@ -1,0 +1,54 @@
+---
+- name: Refresh inventory
+  meta: refresh_inventory
+
+- include: config.yml
+  when: groups['all'] is defined
+
+# - include: operate.yml
+#   vars:
+#     new_ip: "{{ item }}"
+#     new_hostname: "{{ hostvars[item]['fqdn'] }}" 
+#   with_items:
+#   - "{{ groups['all'] }}"
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_public_hostname }}" 
+  with_items:
+    - "{{ groups['all'] }}"
+  when: 
+    - hostvars[item].in_groups.find('lb')|int != -1
+    - vm_masters.vms|int > 1
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_public_hostname }}"
+  with_items:
+    - "{{ groups['all'] }}"
+  when:
+    - hostvars[item].in_groups.find('masters')|int != -1
+    - vm_masters.vms|int == 1
+
+- include: operate.yml
+  vars:
+    new_ip: "{{ item }}"
+    new_hostname: "{{ okd_default_subdomain }}" 
+  with_items:
+    - "{{ groups['all'] }}"
+  when:
+    - hostvars[item].in_groups.find('infra_nodes')|int != -1
+    - vm_infras is defined
+
+- name: Reiniciar o serviço NetworkManager
+  systemd:
+    name: NetworkManager
+    daemon_reload: yes
+    state: restarted
+
+
+
+
+
