@@ -16,29 +16,29 @@
 - name: Clonar VMs para o Cluster OKD a partir da VM Base
   hosts: localhost
   become: True
-  tags: deploy
+  tags: clones
   roles: 
     - okd_kvm_clone
 
 - name: Configurar DNSMasq para o Cluster OKD
   hosts: localhost
   become: True
-  tags: deploy
+  tags: [configs, dnsmasq]
   roles: 
     - okd_kvm_dnsmasq
 
 - name: Gerar ansible hosts para o Cluster OKD
   hosts: localhost
   become: True
-  tags: deploy
+  tags: [configs, hostsfile]
   roles: 
     - okd_kvm_files
 
 - name: Configurar VMs do Cluster OKD
-  hosts: all_nodes
+  hosts: all
   gather_facts: no
   become: True
-  tags: deploy
+  tags: [configs, pre-reqs]
   roles: 
     - okd_kvm_prerequisites
 

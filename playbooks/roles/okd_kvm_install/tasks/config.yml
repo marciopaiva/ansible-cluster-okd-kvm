@@ -1,27 +1,52 @@
 ---
+- name: config | Capturar o grupo libvirt
+  shell: "getent group libvirt | cut -d: -f1"
+  register: libvirt_group_found
+  changed_when: false
+  check_mode: no
 
-- name: config | Configurar o caminho do socket no libvirtd.conf
-  lineinfile:
-    path: /etc/libvirt/libvirtd.conf
-    insertafter: '^#unix_sock_dir ='
-    regexp: '^unix_sock_dir ='
-    line: unix_sock_dir = "{{ kvm_host_socket_dir }}"
-  when: kvm_host_socket_dir | length > 0
+- name: config | Capturar o grupo Libvirtd
+  shell: "getent group libvirtd | cut -d: -f1"
+  register: libvirtd_group_found
+  changed_when: false
+  check_mode: no
+
+- name: config | Registrar o unix_sock_group
+  set_fact:
+    kvm_unix_sock_group: libvirt
+  when: >
+    (libvirt_group_found is defined and
+     libvirt_group_found['stdout'] == 'libvirt')
+
+- name: config | Registrar o unix_sock_group
+  set_fact:
+    kvm_unix_sock_group: libvirtd
+  when: >
+    (libvirtd_group_found is defined and
+     libvirtd_group_found['stdout'] == 'libvirtd')
+
+- name: config | Aplicar configurações para o libvirtd.conf
+  template:
+    src: libvirtd.conf.j2
+    dest: /etc/libvirt/libvirtd.conf
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
   notify: restart libvirt
 
 - name: config | Criar diretório para o libvirt socket
   file:
     state: directory
-    path: "{{ kvm_host_socket_dir }}"
+    path: "{{ kvm_unix_sock_dir }}"
     owner: root
     group: root
     mode: 0755
-  when: kvm_host_socket_dir | length > 0
+  when: kvm_unix_sock_dir | length > 0
 
 - name: config | Incluir o usuário ao grupo libvirt
   user:
     name: '{{ ansible_user }}'
-    groups: libvirt
+    groups: '{{ kvm_unix_sock_group }}'
     append: yes
     state: present
 
@@ -58,6 +83,12 @@
 - name: config | Verificar se o serviço libvirt daemon está ativo
   service:
     name: libvirtd
+    state: started
+    enabled: True
+
+- name: config | Verificar se o serviço libvirt guests está ativo
+  service:
+    name: libvirt-guests
     state: started
     enabled: True
 

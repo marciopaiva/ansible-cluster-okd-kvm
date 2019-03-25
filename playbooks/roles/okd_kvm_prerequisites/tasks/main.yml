@@ -1,7 +1,9 @@
 ---
-
+- name: Refresh inventory
+  meta: refresh_inventory
+  
 - include: docker.yml
-  when: "'docker' in groups and inventory_hostname in groups['docker']" 
+  when: in_groups.find('docker')|int != -1
 
 - include: nfs.yml
-  when: "'nfs' in groups and inventory_hostname in groups['nfs']" 
+  when: in_groups.find('nfs')|int != -1

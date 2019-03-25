@@ -31,7 +31,11 @@ deploy-vmbase: ## Criar a VM Base que será utilizada como template para o clust
 
 deploy-clones: ## Clonar as VMs que serão utilizada pelo cluster OKD
 	@rm /tmp/okd-kvm/facts -rf && \
-	ansible-playbook playbooks/install-cluster-okd-kvm.yml --tag='deploy'
+	ansible-playbook playbooks/install-cluster-okd-kvm.yml --tag='clones'
+
+deploy-configs: ## Configurar os pré-requesitos para instalação do cluster OKD
+	@rm /tmp/okd-kvm/facts -rf && \
+	ansible-playbook playbooks/install-cluster-okd-kvm.yml --tag='configs'
 
 okd-prereqs: ## Executar o playbook de pré-requisitos do OKD
 	@rm /tmp/okd-install/facts -rf && \

@@ -39,8 +39,8 @@ vm_base_machine:
     name: 'vm-base'
     type: 'dir'
     path: '/workspace/kvm'
-    owner: 'mbarbosa'
-    group: 'mbarbosa'    
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'    
   volumes:
     - name: 'disk-root'
       device: 'disk'
@@ -64,7 +64,6 @@ okd_docker_version: 1.13.1
 
 okd_default_subdomain: 'apps.{{ vm_base_network.domain }}'  ## <wildcard>.apps.example.com
 okd_public_hostname: 'okd.{{ vm_base_network.domain }}'     ## https://okd.example.com:8443
-okd_ansible_playbook_path: /tmp/openshift-ansible
 
 # configurações do disco para o docker
 okd_docker_storage_size: 20G 
@@ -85,8 +84,8 @@ okd_nfs_storage_disk: vdb
 # (obrigatória)
 vm_masters:
   prefix: 'master'
-  vcpus: '4'
-  memory: '4G'
+  vcpus: '2'
+  memory: '2G'
   vms: 1   # utilizar valores impar 1 3 5 ... 
 
 # configurações para vms etcd
@@ -103,8 +102,8 @@ vm_masters:
 # (obrigatória)
 vm_infras:
   prefix: 'infra'
-  vcpus: '4'
-  memory: '4G'
+  vcpus: '2'
+  memory: '2G'
   vms: 1
 
 # configurações para vms nodes
@@ -124,5 +123,4 @@ vm_nfs:
   vcpus: '2'
   memory: '2G'
   vms: 1
-
 

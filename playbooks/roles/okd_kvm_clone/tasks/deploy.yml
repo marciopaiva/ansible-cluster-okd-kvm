@@ -77,10 +77,7 @@
     src: vm-info.j2
     dest: "{{ vm_base_machine.pool.path }}/{{ clone_dest }}/vm-info"
 
-- name: deploy | Incluir informações da VM para o inventário 
-  add_host:
-    name: "{{ vm_ip.stdout }}"
-    hostname: "{{ clone_fqdn }}"
-    groups: "{{ clone_groups }}"
-    openshift_public_hostname: "{{ clone_fqdn }}"
-    openshift_node_group_name: "{{ clone_okd_group }}"
+- name: deploy | Incluir informações da VM para o inventário
+  lineinfile:
+    path: "../inventory/inventory.csv"
+    line: "{{ vm_ip.stdout }},{{ clone_fqdn }},{{ clone_in_groups }},{{ clone_okd_group }},{{clone_dest}}"

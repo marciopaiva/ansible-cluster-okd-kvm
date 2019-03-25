@@ -1,5 +1,5 @@
 ---
-# Exigir que a tecnologia de virtualização (VT) estaja habilitada para executar este papel. 
+# Exigir que a tecnologia de virtualização (VT) esteja habilitada para executar este papel. 
 # Embora isso forneça melhor desempenho da VM, talvez ela não esteja disponível em determinados ambientes.
 kvm_host_require_vt: true
 
@@ -19,10 +19,7 @@ kvm_host_enable_efi_support: false
 kvm_host_var_prefix: ""
 
 # Local onde os soquetes do domínio Unix serão armazenados
-kvm_host_socket_dir: >-
-  {%- if kvm_host_var_prefix -%}
-  /var/run/{{ kvm_host_var_prefix }}
-  {%- endif -%}
+kvm_unix_sock_dir: /var/run/libvirt
 
 # Caminho para o arquivo PID que impede que várias instâncias do daemon sejam geradas
 kvm_host_pid_path: >-
@@ -38,6 +35,37 @@ kvm_host_libvirtd_args: >-
 
 # URI de conexão com o libvirt
 kvm_host_uri: >-
-  {%- if kvm_host_socket_dir -%}
-  qemu+unix:///system?socket={{ kvm_host_socket_dir }}/libvirt-sock
+  {%- if kvm_unix_sock_dir -%}
+  qemu+unix:///system?socket={{ kvm_unix_sock_dir }}/libvirt-sock
   {%- endif %}
+
+# Configurações para o libvirt.conf
+kvm_enable_tls: true
+kvm_enable_tcp: false
+kvm_tls_port: 16514
+kvm_tcp_port: 16509
+kvm_listen_addr: 0.0.0.0
+kvm_enable_mdns: false
+kvm_auth_unix_ro: none
+kvm_auth_unix_rw: none
+kvm_max_clients: 5000
+kvm_max_queued_clients: 1000
+kvm_max_anonymous_clients: 20
+kvm_min_workers: 5
+kvm_max_workers: 20
+kvm_prio_workers: 5
+kvm_max_requests: 20
+kvm_max_client_requests: 5
+kvm_admin_min_workers: 1
+kvm_admin_max_workers: 5
+kvm_admin_max_clients: 5
+kvm_admin_max_queued_clients: 5
+kvm_admin_max_client_requests: 5
+kvm_log_level: 3
+kvm_enable_libvirtd_syslog: false
+kvm_audit_logging: 0
+kvm_keepalive_interval: 5
+kvm_keepalive_count: 5
+kvm_admin_keepalive_interval: 5
+kvm_admin_keepalive_count: 5
+kvm_ovs_timeout: 5

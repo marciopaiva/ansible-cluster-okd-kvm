@@ -63,3 +63,9 @@
   with_items:
     - "{{ vm_base_network.domain }}"
     - "{{ vm_base_network.addresses[0].split('.')[0:3] | join('.') }}"
+
+- name: clean | Limpar arquivo de inventário para as VMs
+  copy:
+    dest: "../inventory/inventory.csv"
+    content: |
+      hostname,fqdn,in_groups,okd_group,kvm_name

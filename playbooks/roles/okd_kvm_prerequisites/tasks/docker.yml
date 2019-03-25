@@ -5,7 +5,7 @@
     name: "docker-{{ okd_docker_version }}"
     state: present
   register: rpm_install
-  async: 1800
+  async: 500
   poll: 0
 
 - name: Aguardar pela instalação do docker
@@ -13,7 +13,7 @@
   become: yes
   register: jobs
   until: jobs.finished
-  retries: 180
+  retries: 50
   delay: 10
 
 - name: Configure docker-storage-setup configuration

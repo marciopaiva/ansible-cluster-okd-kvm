@@ -1,33 +1,35 @@
 ---
+- name: Refresh inventory
+  meta: refresh_inventory
 
 - include: config.yml
-  when: groups['all_nodes'] is defined
+  when: groups['all'] is defined
 
-- include: operate.yml
-  vars:
-    new_ip: "{{ item }}"
-    new_hostname: "{{ hostvars[item]['openshift_public_hostname'] }}" 
-  with_items:
-  - "{{ groups['all_nodes'] }}"
+# - include: operate.yml
+#   vars:
+#     new_ip: "{{ item }}"
+#     new_hostname: "{{ hostvars[item]['fqdn'] }}" 
+#   with_items:
+#   - "{{ groups['all'] }}"
 
 - include: operate.yml
   vars:
     new_ip: "{{ item }}"
     new_hostname: "{{ okd_public_hostname }}" 
   with_items:
-  - "{{ groups['lb'] }}"
+    - "{{ groups['all'] }}"
   when: 
-    - groups['lb'] is defined
+    - hostvars[item].in_groups.find('lb')|int != -1
     - vm_masters.vms|int > 1
 
 - include: operate.yml
   vars:
     new_ip: "{{ item }}"
-    new_hostname: "{{ okd_public_hostname }}" 
+    new_hostname: "{{ okd_public_hostname }}"
   with_items:
-  - "{{ groups['masters'] }}"
+    - "{{ groups['all'] }}"
   when:
-    - groups['masters'] is defined 
+    - hostvars[item].in_groups.find('masters')|int != -1
     - vm_masters.vms|int == 1
 
 - include: operate.yml
@@ -35,9 +37,10 @@
     new_ip: "{{ item }}"
     new_hostname: "{{ okd_default_subdomain }}" 
   with_items:
-  - "{{ groups['infra_nodes'] }}"
+    - "{{ groups['all'] }}"
   when:
-    - groups['all_nodes'] is defined
+    - hostvars[item].in_groups.find('infra_nodes')|int != -1
+    - vm_infras is defined
 
 - name: Reiniciar o serviço NetworkManager
   systemd:

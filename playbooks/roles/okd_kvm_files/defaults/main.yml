@@ -2,3 +2,5 @@
 
 okd_version: 3.11
 okd_docker_version: 1.13.1
+
+okd_ansible_playbook_path: /tmp/openshift-ansible
