@@ -27,7 +27,7 @@ Este repositório disponibiliza um ansible playbook para a instalação de um cl
 
 ### Configurações do playbook
 
-Ajuste todas as variáveis em (playbooks/group_vars/all.yml) ao seu gosto, definindo as Networks, Domínio, total de VMs e configurações específicas para o OKD:
+Ajuste todas as variáveis em [playbooks/group_vars/all.yml](playbooks/group_vars/all.yml) ao seu gosto, definindo as Networks, Domínio, total de VMs e configurações específicas para o OKD:
 
 ### Instalação
 
